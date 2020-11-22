@@ -338,3 +338,16 @@ double Map::getCellSize() const
 {
       return cellSize;
 }
+
+int Map::getStart_i() const{
+    return start_i;
+}
+int Map::getStart_j() const{
+    return start_j;
+}
+int Map::getGoal_i() const{
+    return goal_i;
+}
+int Map::getGoal_j() const{
+    return goal_j;
+}

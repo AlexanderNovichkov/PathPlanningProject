@@ -37,5 +37,6 @@ class Search
         std::list<Node>                 lppath, hppath; //
 
         //CODE HERE to define other members of the class
+        std::list<Node> open, close;
 };
 #endif
