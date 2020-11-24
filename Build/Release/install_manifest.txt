@@ -1,1 +1,0 @@
-/Users/alex/Desktop/CLion projects/PathPlanningProject/Bin/Release/Alexander_Novichkov_ASearch
