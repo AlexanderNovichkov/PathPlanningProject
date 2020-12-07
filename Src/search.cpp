@@ -97,6 +97,7 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
     Node *goal_node = nullptr;
 
     int numberofsteps = 0;
+
     while (!open.empty()) {
         numberofsteps++;
         auto expanding_node_it = std::min_element(open.begin(), open.end(), [](const Node &a, const Node &b) {
@@ -142,6 +143,7 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
     sresult.hppath = &hppath;
     sresult.nodescreated = open.size() + close.size();
     sresult.numberofsteps = numberofsteps;
+    sresult.pathlength = float(goal_node->g);
     sresult.time = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::steady_clock::now() - start_time).count();
     return sresult;

@@ -52,7 +52,7 @@
     </options>
     <log>
         <mapfilename>/Users/alex/Desktop/CLion projects/PathPlanningProject/Examples/example.xml</mapfilename>
-        <summary numberofsteps="373" nodescreated="393" length="0" length_scaled="0" time="0.000000"/>
+        <summary numberofsteps="373" nodescreated="393" length="16.071068" length_scaled="385.70562744140625" time="0.000000"/>
         <path>
             <row number="0">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </row>
             <row number="1">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </row>
