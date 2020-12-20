@@ -11,7 +11,7 @@ Search::Search() {
 
 Search::~Search() {}
 
-double calculateHeuristic(int pos_i, int pos_j, int goal_i, int goal_j, int metrictype) {
+double Search::calculateHeuristic(int pos_i, int pos_j, int goal_i, int goal_j, int metrictype) {
     int d_i = std::abs(pos_i - goal_i);
     int d_j = std::abs(pos_j - goal_j);
 
@@ -34,7 +34,7 @@ double calculateHeuristic(int pos_i, int pos_j, int goal_i, int goal_j, int metr
     return 0;
 }
 
-Node buildNode(Node *parentNode, int cur_i, int cur_j, const Map &map, const EnvironmentOptions &options) {
+Node Search::buildNode(Node *parentNode, int cur_i, int cur_j, const Map &map, const EnvironmentOptions &options) {
     Node new_node{};
     new_node.i = cur_i;
     new_node.j = cur_j;
@@ -47,45 +47,46 @@ Node buildNode(Node *parentNode, int cur_i, int cur_j, const Map &map, const Env
     return new_node;
 }
 
-// current version does not support options
-std::vector<Node> getSucessors(Node *parentNode, const Map &map, const EnvironmentOptions &options) {
+
+std::vector<Node> Search::getSucessors(Node *parentNode, const Map &map, const EnvironmentOptions &options) {
     std::vector<Node> sucessors;
     for (int i = parentNode->i - 1; i <= parentNode->i + 1; i++) {
         for (int j = parentNode->j - 1; j <= parentNode->j + 1; j++) {
-            if ((i == parentNode->i && j == parentNode->j) || !map.CellOnGrid(i, j) ||
-                map.CellIsObstacle(i, j))
+            if ((i == parentNode->i && j == parentNode->j) || !map.CellOnGrid(i, j) || map.CellIsObstacle(i, j)) {
                 continue;
+            }
+
+
+            if (i != parentNode->i && j != parentNode->j) { // move diagonal
+                if (!options.allowdiagonal) {
+                    continue;
+                }
+
+                int untraversable_adjacent_cell_cnt = 0;
+                untraversable_adjacent_cell_cnt += (map.CellOnGrid(i, parentNode->j) &&
+                                                    map.CellIsObstacle(i, parentNode->j));
+
+                untraversable_adjacent_cell_cnt += (map.CellOnGrid(parentNode->i, j) &&
+                                                    map.CellIsObstacle(parentNode->i, j));
+
+                if (untraversable_adjacent_cell_cnt >= 1) {
+                    if (!options.cutcorners) {
+                        continue;
+                    }
+
+                    if (untraversable_adjacent_cell_cnt == 2) {
+                        if (!options.allowsqueeze) {
+                            continue;
+                        }
+                    }
+                }
+            }
+
             sucessors.push_back(buildNode(parentNode, i, j, map, options));
         }
     }
+
     return sucessors;
-}
-
-std::list<Node> generate_lppath(const Node *node) {
-    std::list<Node> lppath;
-    while (node != nullptr) {
-        lppath.push_front(*node);
-        node = node->parent;
-    }
-    return lppath;
-}
-
-std::list<Node> generate_hppath_from_lppath(const std::list<Node> &lppath) {
-    if (lppath.size() <= 2) {
-        return lppath;
-    }
-    std::list<Node> hppath;
-    hppath.push_back(lppath.front());
-
-    for (auto cur = std::next(lppath.begin(), 2); cur != lppath.end(); cur++) {
-        auto prev = std::prev(cur, 1);
-        auto pprev = std::prev(cur, 2);
-        if (!((cur->i - prev->i == prev->i - pprev->i) && (cur->j - prev->j == prev->j - pprev->j))) {
-            hppath.push_back(*prev);
-        }
-    }
-    hppath.push_back(*(--lppath.end()));
-    return hppath;
 }
 
 SearchResult Search::startSearch(ILogger *Logger, const Map &map, const EnvironmentOptions &options) {
@@ -104,20 +105,18 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
             return a.F < b.F;
         });
 
-        close.push_back(*expanding_node_it);
+        Node *expanding_node = &(close[searchutils::Point(expanding_node_it->i,
+                                                          expanding_node_it->j)] = *expanding_node_it);
         open.erase(expanding_node_it);
-        expanding_node_it = --close.end();
 
-        if (expanding_node_it->i == map.getGoal_i() && expanding_node_it->j == map.getGoal_j()) {
-            goal_node = &(*expanding_node_it);
+        if (expanding_node->i == map.getGoal_i() && expanding_node->j == map.getGoal_j()) {
+            goal_node = &(*expanding_node);
             break;
         }
 
-        std::vector<Node> sucessors = getSucessors(&(*expanding_node_it), map, options);
+        std::vector<Node> sucessors = getSucessors(&(*expanding_node), map, options);
         for (const Node &s : sucessors) {
-            if (std::find_if(close.begin(), close.end(), [&s](const Node &node) {
-                return (node.i == s.i) && (node.j == s.j);
-            }) != close.end()) {
+            if (close.count(searchutils::Point(s.i, s.j))) {
                 continue;
             }
 
@@ -136,8 +135,8 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
     }
 
     sresult.pathfound = (goal_node != nullptr);
-    lppath = generate_lppath(goal_node);
-    hppath = generate_hppath_from_lppath(lppath);
+    makePrimaryPath(goal_node);
+    makeSecondaryPath();
 
     sresult.lppath = &lppath;
     sresult.hppath = &hppath;
@@ -147,20 +146,27 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
     sresult.time = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::steady_clock::now() - start_time).count();
     return sresult;
-    /*sresult.pathfound = ;
-    sresult.nodescreated =  ;
-    sresult.numberofsteps = ;
-    sresult.time = ;
-    sresult.hppath = &hppath; //Here is a constant pointer
-    sresult.lppath = &lppath;*/
 }
 
-/*void Search::makePrimaryPath(Node curNode)
-{
-    //need to implement
-}*/
+void Search::makePrimaryPath(const Node *node) {
+    while (node != nullptr) {
+        lppath.push_front(*node);
+        node = node->parent;
+    }
+}
 
-/*void Search::makeSecondaryPath()
-{
-    //need to implement
-}*/
+void Search::makeSecondaryPath() {
+    if (lppath.size() <= 2) {
+        return;
+    }
+    hppath.push_back(lppath.front());
+
+    for (auto cur = std::next(lppath.begin(), 2); cur != lppath.end(); cur++) {
+        auto prev = std::prev(cur, 1);
+        auto pprev = std::prev(cur, 2);
+        if (!((cur->i - prev->i == prev->i - pprev->i) && (cur->j - prev->j == prev->j - pprev->j))) {
+            hppath.push_back(*prev);
+        }
+    }
+    hppath.push_back(*(--lppath.end()));
+}
