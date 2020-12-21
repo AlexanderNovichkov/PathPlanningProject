@@ -43,7 +43,7 @@ Node Search::buildNode(Node *parentNode, int cur_i, int cur_j, const Map &map, c
     new_node.g = parentNode->g + dist_from_cur_to_new;
     new_node.H = calculateHeuristic(
             new_node.i, new_node.j, map.getGoal_i(), map.getGoal_j(), options.metrictype);
-    new_node.F = new_node.g + new_node.F;
+    new_node.F = new_node.g + new_node.H;
     return new_node;
 }
 
@@ -94,43 +94,28 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
 
     double start_node_heuristic = calculateHeuristic(map.getStart_i(), map.getStart_j(), map.getGoal_j(),
                                                      map.getGoal_j(), options.metrictype);
-    open.push_back(Node{map.getStart_i(), map.getStart_j(), start_node_heuristic, 0, start_node_heuristic, nullptr});
+    open.update_node(Node{map.getStart_i(), map.getStart_j(), start_node_heuristic, 0, start_node_heuristic, nullptr});
     Node *goal_node = nullptr;
 
-    int numberofsteps = 0;
 
-    while (!open.empty()) {
-        numberofsteps++;
-        auto expanding_node_it = std::min_element(open.begin(), open.end(), [](const Node &a, const Node &b) {
-            return a.F < b.F;
-        });
+    while (open.size() > 0) {
+        Node expanding_node = open.extract_min_node();
+        close[searchutils::point_hash(expanding_node.i, expanding_node.j)] = expanding_node;
 
-        Node *expanding_node = &(close[searchutils::Point(expanding_node_it->i,
-                                                          expanding_node_it->j)] = *expanding_node_it);
-        open.erase(expanding_node_it);
+        Node *cur_node_ptr = &close[searchutils::point_hash(expanding_node.i, expanding_node.j)];
 
-        if (expanding_node->i == map.getGoal_i() && expanding_node->j == map.getGoal_j()) {
-            goal_node = &(*expanding_node);
+        if (cur_node_ptr->i == map.getGoal_i() && cur_node_ptr->j == map.getGoal_j()) {
+            goal_node = cur_node_ptr;
             break;
         }
 
-        std::vector<Node> sucessors = getSucessors(&(*expanding_node), map, options);
+        std::vector<Node> sucessors = getSucessors(cur_node_ptr, map, options);
         for (const Node &s : sucessors) {
-            if (close.count(searchutils::Point(s.i, s.j))) {
+            if (close.count(searchutils::point_hash(s.i, s.j))) {
                 continue;
             }
 
-            auto it = std::find_if(open.begin(), open.end(), [&s](const Node &node) {
-                return (node.i == s.i) && (node.j == s.j);
-            });
-            if (it == open.end()) {
-                open.push_back(s);
-            } else {
-                if (it->F > s.F) {
-                    open.erase(it);
-                    open.push_back(s);
-                }
-            }
+            open.update_node(s);
         }
     }
 
@@ -141,10 +126,11 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
     sresult.lppath = &lppath;
     sresult.hppath = &hppath;
     sresult.nodescreated = open.size() + close.size();
-    sresult.numberofsteps = numberofsteps;
+    sresult.numberofsteps = (int) (close.size()) - 1;
     sresult.pathlength = float(goal_node->g);
-    sresult.time = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::steady_clock::now() - start_time).count();
+    sresult.time = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - start_time).count() / 1000000.0;
+
     return sresult;
 }
 

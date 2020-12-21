@@ -52,8 +52,8 @@ protected:
     std::list<Node> lppath, hppath; //
 
     //CODE HERE to define other members of the class
-    std::list<Node> open;
-    std::unordered_map<searchutils::Point, Node, searchutils::PointHash> close;
+    searchutils::OpenDataStructure open;
+    std::unordered_map<uint64_t, Node> close;
 };
 
 #endif
