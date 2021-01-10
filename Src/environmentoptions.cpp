@@ -8,8 +8,11 @@ EnvironmentOptions::EnvironmentOptions()
     cutcorners = false;
 }
 
-EnvironmentOptions::EnvironmentOptions(bool AS, bool AD, bool CC, int MT)
+EnvironmentOptions::EnvironmentOptions(int AL, double HW, int BT, bool AS, bool AD, bool CC, int MT)
 {
+    algorithm = AL;
+    hweight = HW;
+    breakingties = BT;
     metrictype = MT;
     allowsqueeze = AS;
     allowdiagonal = AD;

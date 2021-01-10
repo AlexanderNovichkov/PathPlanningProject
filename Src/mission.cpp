@@ -41,8 +41,20 @@ void Mission::createEnvironmentOptions()
     options.cutcorners = config.SearchParams[CN_SP_CC];
     options.allowsqueeze = config.SearchParams[CN_SP_AS];
     options.allowdiagonal = config.SearchParams[CN_SP_AD];
-    options.metrictype = config.SearchParams[CN_SP_MT];
 
+    options.algorithm = config.SearchParams[CN_SP_ST];
+
+    if(options.algorithm == CN_SP_ST_DIJK){
+        options.metrictype = CN_SP_MT_ZERO;
+        options.breakingties = 0;
+        options.hweight = 0;
+    }
+
+    if(options.algorithm == CN_SP_ST_ASTAR) {
+        options.hweight = config.SearchParams[CN_SP_HW];
+        options.breakingties = config.SearchParams[CN_SP_BT];
+        options.metrictype = config.SearchParams[CN_SP_MT];
+    }
 }
 
 void Mission::createSearch()

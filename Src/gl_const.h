@@ -91,11 +91,13 @@
         #define CNS_SP_MT_MANH  "manhattan"
         #define CNS_SP_MT_EUCL  "euclidean"
         #define CNS_SP_MT_CHEB  "chebyshev"
+        #define CNS_SP_MT_ZERO  "zero"
 
         #define CN_SP_MT_DIAG   0
         #define CN_SP_MT_MANH   1
         #define CN_SP_MT_EUCL   2
         #define CN_SP_MT_CHEB   3
+        #define CN_SP_MT_ZERO   4
 
     #define CN_SP_HW 5 //HeuristicWeight
 
