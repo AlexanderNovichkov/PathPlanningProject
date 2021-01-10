@@ -1,13 +1,33 @@
 #include "searchutils.h"
 
 namespace searchutils {
-
     uint64_t point_hash(int i, int j) {
         return (uint64_t) (i) | (uint64_t(j) << 32u);
     }
 
+    bool Comp::Comp::operator()(const Node *a, const Node *b) const {
+        if (a->F != b->F) {
+            return a->F < b->F;
+        }
 
-    OpenDataStructure::OpenDataStructure() = default;
+        if (a->g != b->g) {
+            if (breakingties == CN_SP_BT_GMIN) {
+                return a->g < b->g;
+            } else {
+                return a->g > b->g;
+            }
+        }
+
+        if (a->i != b->i) {
+            return a->i < b->i;
+        }
+        return (a->j < b->j);
+    }
+
+    Comp::Comp(bool breakingties) : breakingties(breakingties) {}
+
+
+    OpenDataStructure::OpenDataStructure(bool breakingties) : sorted_nodes(Comp(breakingties)) {}
 
     void OpenDataStructure::update_node(const Node &node) {
         uint64_t pos_hash = point_hash(node.i, node.j);
@@ -36,24 +56,5 @@ namespace searchutils {
 
     size_t OpenDataStructure::size() const {
         return sorted_nodes.size();
-    }
-
-    void OpenDataStructure::set_breakingties(bool value) {
-        breakingties = value;
-    }
-
-    bool OpenDataStructure::comp::operator()(const Node *a, const Node *b) {
-        if (a->F != b->F) {
-            return a->F < b->F;
-        }
-        ////// need to change
-        if (a->g != b->g) {
-            return a->g > b->g;
-        }
-        ///////
-        if (a->i != b->i) {
-            return a->i < b->i;
-        }
-        return (a->j < b->j);
     }
 }

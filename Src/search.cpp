@@ -43,7 +43,7 @@ Node Search::buildNode(Node *parentNode, int cur_i, int cur_j, const Map &map, c
     new_node.i = cur_i;
     new_node.j = cur_j;
     new_node.parent = parentNode;
-    double dist_from_cur_to_new = ((cur_i == parentNode->i || cur_j == parentNode->j) ? 1 : sqrt(2));
+    double dist_from_cur_to_new = ((cur_i == parentNode->i || cur_j == parentNode->j) ? 1 : CN_SQRT_TWO);
     new_node.g = parentNode->g + dist_from_cur_to_new;
     new_node.H = calculateHeuristic(
             new_node.i, new_node.j, map.getGoal_i(), map.getGoal_j(), options.metrictype);
@@ -98,7 +98,7 @@ SearchResult Search::startSearch(ILogger *Logger, const Map &map, const Environm
     double start_node_heuristic = calculateHeuristic(map.getStart_i(), map.getStart_j(), map.getGoal_j(),
                                                      map.getGoal_j(), options.metrictype);
 
-    searchutils::OpenDataStructure open;
+    searchutils::OpenDataStructure open(options.breakingties);
     std::unordered_map<uint64_t, Node> close;
 
     open.update_node(Node{map.getStart_i(), map.getStart_j(), start_node_heuristic, 0, start_node_heuristic, nullptr});

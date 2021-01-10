@@ -103,6 +103,7 @@ bool Config::getConfig(const char *FileName)
             else if (value == CNS_SP_MT_EUCL) SearchParams[CN_SP_MT] = CN_SP_MT_EUCL;
             else if (value == CNS_SP_MT_DIAG) SearchParams[CN_SP_MT] = CN_SP_MT_DIAG;
             else if (value == CNS_SP_MT_CHEB) SearchParams[CN_SP_MT] = CN_SP_MT_CHEB;
+            else if (value == CNS_SP_MT_ZERO) SearchParams[CN_SP_MT] = CN_SP_MT_ZERO;
             else {
                 std::cout << "Warning! Value of'" << CNS_TAG_MT << "' is not correctly specified." << std::endl;
                 std::cout << "Value of '" << CNS_TAG_MT << "' was defined to 'euclidean'" << std::endl;
